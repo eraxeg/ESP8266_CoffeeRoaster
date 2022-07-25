@@ -125,7 +125,7 @@ Thermocouple* originThermocouple = NULL;
 RunningMedian Med_BeanTemp = RunningMedian(12);
 
 
-//MAX6675 Sensor_BT(SCK_PIN,BeanTemp_CS_PIN, SO_PIN);
+// MAX6675 Sensor_BT(SCK_PIN,BeanTemp_CS_PIN, SO_PIN);
 
 //===============================================
 
@@ -138,10 +138,12 @@ void measureBeanTemp()
   
 
   //DEBUG: Fake BeanTemp
-  //BeanTemp = 111.2;
+//   BeanTemp+=.125;
+//   Med_BeanTemp.add(BeanTemp);
 
-  //Serial.print("BeanTemp: ");
-  //Serial.println(BeanTemp);
+  // Serial.print("BeanTemp: ");
+  // Serial.println(this_BeanTemp);
+  // Serial.println(Med_BeanTemp.getMedian());
 
 }
 
@@ -169,7 +171,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         case WStype_TEXT:
             { 
             //DEBUG WEBSOCKET
-            //Serial.printf("[%u] get Text: %s\n", num, payload);
+            // Serial.printf("[%u] get Text: %s\n", num, payload);
 
             //Extract Values lt. https://arduinojson.org/v6/example/http-client/
             //Artisan Anleitung: https://artisan-scope.org/devices/websockets/
@@ -185,8 +187,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
             //Get BurnerVal from Artisan over Websocket
             if(!doc["BurnerVal"].isNull())
             {
-              //Serial.print("BurnerVal: ");
-              //Serial.println(doc["BurnerVal"].as<long>());  
+//               Serial.print("BurnerVal: ");
+//               Serial.println(doc["BurnerVal"].as<long>());
               DimmerVal = doc["BurnerVal"].as<long>();
             }
 
@@ -235,10 +237,10 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
             //==========================
 
             ln_id = doc["id"].as<long>();
-            JsonObject root = doc.to<JsonObject>();
-            JsonObject data = root.createNestedObject("data");
+            root = doc.to<JsonObject>();
+            data = root.createNestedObject("data");
             root["id"] = ln_id;
-            data["BT"] = BeanTemp;
+            data["BT"] = Med_BeanTemp.getMedian();
             data["Dimmer"] = float(DimmerVal);
 
             */
@@ -312,7 +314,7 @@ void func1MS() {
   }
 
 
-Ticker ticker1MS(func1MS, 1, 0, MICROS);
+Ticker ticker1MS(func1MS, 1, 0, MILLIS);
 Ticker ticker250MS(func250MS, 250, 0, MILLIS);
 Ticker ticker1S(func1S, 1000, 0, MILLIS);
 
@@ -350,7 +352,7 @@ void setup() {
   */
   
 
- /*
+
 
 //CLIENT MODE
 
@@ -361,7 +363,7 @@ void setup() {
   Serial.print("Connecting to ");
   Serial.println(ssid);
   
-  WiFi.config(local_IP, gateway, subnet);
+  //WiFi.config(local_IP, gateway, subnet);
   WiFi.begin(ssid, password);
   
   while (WiFi.status() != WL_CONNECTED) {
@@ -373,9 +375,8 @@ void setup() {
   Serial.println("WiFi connected");  
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-  */
-
  
+ /*
  //WIFI MANAGER
 
   // The extra parameters to be configured (can be either global or just in the setup)
@@ -419,14 +420,14 @@ void setup() {
   if (!wifiManager.autoConnect("myWifi", "myPass", 1, 3000)) {
     Serial.println("failed to connect and hit timeout");
     delay(3000);
-    //reset and try again, or maybe put it to deep sleep
+//     reset and try again, or maybe put it to deep sleep
     ESP.reset();
     delay(5000);
   }
 
   //if you get here you have connected to the WiFi
   Serial.println("connected...yeey :)");
-  
+*/
 
   //ELEGANT OTA
 
@@ -439,6 +440,7 @@ void setup() {
   Serial.println("HTTP server started");
 
   webSocket.begin();
+  Serial.println("Websocket endpoint started");
   webSocket.onEvent(webSocketEvent);
 
 }
